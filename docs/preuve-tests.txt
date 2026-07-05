@@ -1,0 +1,30 @@
+### PREUVE D'EXECUTION DES TESTS ###
+
+Date : 2026-07-05 22:28
+Node : v24.12.0
+
+===== npm test (unitaires + integration) =====
+
+> reservation-salles@1.0.0 test
+> vitest run
+
+
+ RUN  v2.1.9 C:/Users/mimib/Documents/01_DEV/PROJET_Qualite_logicielle_tests
+
+ ✓ tests/unit/reservationService.test.js (19 tests) 11ms
+ ✓ tests/integration/reservations.api.test.js (7 tests) 79ms
+
+ Test Files  2 passed (2)
+      Tests  26 passed (26)
+   Start at  22:28:46
+   Duration  837ms (transform 67ms, setup 0ms, collect 317ms, tests 90ms, environment 1ms, prepare 340ms)
+
+
+===== npx playwright test (E2E) =====
+
+Running 2 tests using 1 worker
+
+  ok 1 tests\e2e\reservation.spec.js:7:1 › un utilisateur réserve une salle disponible et la voit dans la liste (289ms)
+  ok 2 tests\e2e\reservation.spec.js:26:1 › un chevauchement affiche un message d’erreur visible (300ms)
+
+  2 passed (2.2s)

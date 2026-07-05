@@ -1,0 +1,28 @@
+{
+  "name": "reservation-salles",
+  "version": "1.0.0",
+  "description": "Mini-projet QA : gestionnaire de réservation de salles en TDD (tests unitaires, intégration, E2E, CI/CD).",
+  "type": "module",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "dev": "node src/server.js",
+    "start": "node src/server.js",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:unit": "vitest run tests/unit",
+    "test:integration": "vitest run tests/integration",
+    "coverage": "vitest run --coverage",
+    "e2e": "playwright test",
+    "e2e:install": "playwright install chromium"
+  },
+  "dependencies": {
+    "express": "^4.19.2"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.45.0",
+    "supertest": "^7.0.0",
+    "vitest": "^2.0.0"
+  }
+}

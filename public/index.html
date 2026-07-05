@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Réservation de salles</title>
+  <style>
+    * { box-sizing: border-box; }
+    body { font-family: system-ui, sans-serif; max-width: 760px; margin: 2rem auto; padding: 0 1rem; color: #1a1a2e; }
+    h1 { font-size: 1.4rem; }
+    form { display: grid; gap: .6rem; padding: 1rem; border: 1px solid #d7d7e0; border-radius: 8px; }
+    label { display: grid; gap: .2rem; font-size: .85rem; font-weight: 600; }
+    input, select, button { padding: .5rem; font-size: 1rem; border-radius: 6px; border: 1px solid #c3c3cf; }
+    button { background: #3d5afe; color: #fff; border: none; cursor: pointer; font-weight: 600; }
+    button:hover { background: #304ffe; }
+    #erreur { color: #c62828; font-weight: 600; min-height: 1.2rem; }
+    ul { list-style: none; padding: 0; }
+    li { padding: .6rem .8rem; border: 1px solid #e0e0e8; border-radius: 6px; margin-bottom: .5rem; display: flex; justify-content: space-between; align-items: center; gap: 1rem; }
+    li .infos { font-size: .9rem; }
+    li button { background: #eee; color: #333; font-size: .8rem; padding: .3rem .6rem; }
+    .badge { font-size: .7rem; padding: .1rem .4rem; border-radius: 4px; background: #e8f5e9; color: #2e7d32; }
+    .badge.annulee { background: #ffebee; color: #c62828; }
+  </style>
+</head>
+<body>
+  <h1>Réservation de salles</h1>
+
+  <form id="form-reservation" data-testid="form-reservation">
+    <label>Salle
+      <select name="salle" data-testid="input-salle" required></select>
+    </label>
+    <label>Utilisateur
+      <input name="utilisateur" data-testid="input-utilisateur" placeholder="ex : e.benard" required />
+    </label>
+    <label>Début
+      <input type="datetime-local" name="debut" data-testid="input-debut" required />
+    </label>
+    <label>Fin
+      <input type="datetime-local" name="fin" data-testid="input-fin" required />
+    </label>
+    <button type="submit" data-testid="btn-reserver">Réserver</button>
+    <p id="erreur" data-testid="message-erreur" role="alert"></p>
+  </form>
+
+  <h2>Réservations</h2>
+  <ul id="liste" data-testid="liste-reservations"></ul>
+
+  <script>
+    const api = {
+      async salles() { return (await fetch('/api/salles')).json(); },
+      async lister() { return (await fetch('/api/reservations')).json(); },
+      async creer(payload) {
+        const res = await fetch('/api/reservations', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload),
+        });
+        return { ok: res.ok, body: await res.json() };
+      },
+      async annuler(id) {
+        return fetch(`/api/reservations/${id}/annuler`, { method: 'POST' });
+      },
+    };
+
+    const $ = (sel) => document.querySelector(sel);
+    const form = $('#form-reservation');
+    const erreur = $('#erreur');
+    const liste = $('#liste');
+
+    async function chargerSalles() {
+      const { salles } = await api.salles();
+      $('[data-testid="input-salle"]').innerHTML = salles
+        .map((s) => `<option value="${s}">${s}</option>`)
+        .join('');
+    }
+
+    function formatDate(iso) {
+      return new Date(iso).toLocaleString('fr-FR', { dateStyle: 'short', timeStyle: 'short' });
+    }
+
+    async function rafraichir() {
+      const { reservations } = await api.lister();
+      liste.innerHTML = reservations
+        .map((r) => `
+          <li data-testid="reservation" data-salle="${r.salle}" data-statut="${r.statut}">
+            <span class="infos">
+              <strong>${r.salle}</strong> — ${r.utilisateur}<br />
+              ${formatDate(r.debut)} → ${formatDate(r.fin)} (${r.dureeMinutes} min)
+              <span class="badge ${r.statut === 'ANNULEE' ? 'annulee' : ''}">${r.statut}</span>
+            </span>
+            ${r.statut === 'CONFIRMEE'
+              ? `<button data-testid="btn-annuler" data-id="${r.id}">Annuler</button>`
+              : ''}
+          </li>`)
+        .join('');
+    }
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      erreur.textContent = '';
+      const data = Object.fromEntries(new FormData(form));
+      const payload = {
+        salle: data.salle,
+        utilisateur: data.utilisateur,
+        debut: data.debut ? new Date(data.debut).toISOString() : '',
+        fin: data.fin ? new Date(data.fin).toISOString() : '',
+      };
+      const { ok, body } = await api.creer(payload);
+      if (!ok) {
+        erreur.textContent = body.error?.message ?? 'Erreur inconnue.';
+        return;
+      }
+      form.reset();
+      await chargerSalles();
+      await rafraichir();
+    });
+
+    liste.addEventListener('click', async (e) => {
+      const btn = e.target.closest('[data-testid="btn-annuler"]');
+      if (!btn) return;
+      await api.annuler(btn.dataset.id);
+      await rafraichir();
+    });
+
+    chargerSalles().then(rafraichir);
+  </script>
+</body>
+</html>
