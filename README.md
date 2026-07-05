@@ -1,5 +1,7 @@
 # Réservation de salles
 
+[![CI](https://github.com/BlueeShark/PROJET_Qualite_logicielle_tests/actions/workflows/ci.yml/badge.svg)](https://github.com/BlueeShark/PROJET_Qualite_logicielle_tests/actions/workflows/ci.yml)
+
 Mini-projet de **qualité logicielle** développé en **TDD**, avec tests unitaires,
 tests d'intégration, un test end-to-end et une pipeline CI/CD.
 
